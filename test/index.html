@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta charset="utf-8" />
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+   <title>jquery文件分段上传插件-fcup.js</title>
+   <meta name="keywords" content="fcup.js,大文件上传,分段上传,h5上传,上传插件,切片上传,html5上传,web上传,文件上传" />
+   <meta name="description" content="fcup.js是一款支持大文件切片上传插件，使用简单方便，功能强大" />
+   <script type="text/javascript">
+      // 进度条
+      function Progress(value) {
+         var myProgress = document.getElementById("myProgress");
+         var mySpan = document.getElementById("mySpan");
+         mySpan.innerText = value + "%";
+         myProgress.value = value;
+      }
+      // 进度条2
+      function Progress2(value) {
+         var myProgress = document.getElementById("myProgress2");
+         var mySpan = document.getElementById("mySpan2");
+         mySpan.innerText = value + "%";
+         myProgress.value = value;
+      }	  
+   </script>
+   <style>
+      body {
+         font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+      }
+      a {
+         color: blue;
+      }
+      progress{
+          -webkit-appearance: none;
+      }
+      ::-webkit-progress-bar{
+         background-color: #ccc;
+     }
+     ::-webkit-progress-value {
+        background-color: rgb(, , );
+     }
+     ::-webkit-progress-inner-element {
+        border: px solid black;
+        /* 进度条的内边框，注意跟outline区分 */
+    }	  
+   </style>
+</head>
+
+<body>
+   <div style="margin: 100px auto;text-align: center">
+      <h3>fcup.js-大文件分片上传插件</h3>
+	  <h4>演示案例</h4>
+      <br />
+      <!-- 进度条html元素 -->
+      <progress id="myProgress" value="0" max="100"></progress> <span id="mySpan">0%</span>
+
+      <!-- 上传按钮 -->
+      <button id="upid">上传</button><br />
+      <br />
+      <img src="" id="pic" style="width:200px;display:none">
+      <br /><br />
+      <!-- 进度条html元素 -->
+      <progress id="myProgress2" value="0" max="100"></progress> <span id="mySpan2">0%</span>
+
+      <!-- 上传按钮 -->
+      <button id="upid2">上传</button><br />
+      <br />
+      <img src="" id="pic2" style="width:200px;display:none">
+   </div>
+   <!--  jquery  -->
+   <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+   <!--  fcup.js  -->
+   <script src="../src/fcup.min.js"></script>
+
+   <script>
+   // 上传案例
+   new fcup({
+
+      id: "upid", // 绑定id
+
+      url: "server/php/file.php", // url地址
+
+      type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
+
+      shardsize: "0.1", // 每次分片大小，单位为M，默认1M
+
+      minsize: '', // 最小文件上传M数，单位为M，默认为无
+
+      maxsize: "50", // 上传文件最大M数，单位为M，默认200M
+      
+	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头
+	  
+	  // apped_data: {}, //每次上传的附加数据
+	  
+      // 定义错误信息
+      errormsg: {
+         1000: "未找到上传id",
+         1001: "类型不允许上传",
+         1002: "上传文件过小",
+         1003: "上传文件过大",
+         1004: "上传请求超时"
+      },
+      
+      // 错误提示
+      error: (msg) => {
+         alert(msg);
+      },      
+
+      // 初始化事件                
+      start: () => {
+         console.log('上传已准备就绪');
+         Progress(0);
+      },
+
+      // 等待上传事件，可以用来loading
+      beforeSend: () => {
+         console.log('等待请求中');
+      },
+
+      // 上传进度事件
+      progress: (num, other) => {
+         Progress(num);
+         console.log(num);
+         console.log('上传进度' + num);
+         console.log("上传类型" + other.type);
+         console.log("已经上传" + other.current);
+         console.log("剩余上传" + other.surplus);
+         console.log("已用时间" + other.usetime);
+         console.log("预计时间" + other.totaltime);
+      },
+
+      // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终返回true;
+      success: (res) => {
+
+         let data = res ? eval('(' + res + ')') : '';
+
+         let url = data.url + "?" + Math.random();
+
+         if (data.status == 2) {
+            $('#pic').attr("src", url);
+            $('#pic').show();
+            alert('上传完成');
+         }
+
+         if (data.status == 3) {
+            Progress(100);
+            $('#pic').attr("src", url);
+            $('#pic').show();
+            alert('已经上传过了');
+            return false;
+         }
+
+         // 如果接口没有错误，必须要返回true，才不会终止上传循环
+         return true;
+      }
+   });	  
+   
+   let up = new fcup({
+
+      id: "upid2", // 绑定id
+
+      url: "server/php/file.php", // url地址
+
+      type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
+
+      shardsize: "0.1", // 每次分片大小，单位为M，默认1M
+
+      minsize: '', // 最小文件上传M数，单位为M，默认为无
+
+      maxsize: "50", // 上传文件最大M数，单位为M，默认200M
+
+      // 定义错误信息
+      errormsg: {
+         1000: "未找到上传id",
+         1001: "类型不允许上传",
+         1002: "上传文件过小",
+         1003: "上传文件过大",
+         1004: "上传请求超时"
+      },
+      
+      // 错误提示
+      error: (msg) => {
+         alert(msg);
+      },      
+
+      // 初始化事件                
+      start: () => {
+         console.log('上传已准备就绪');
+         Progress2(0);
+      },
+
+      // 等待上传事件，可以用来loading
+      beforeSend: () => {
+         console.log('等待请求中');
+      },
+
+      // 上传进度事件
+      progress: (num, other) => {
+         Progress2(num);
+         console.log(num);
+         console.log('上传进度' + num);
+         console.log("上传类型" + other.type);
+         console.log("已经上传" + other.current);
+         console.log("剩余上传" + other.surplus);
+         console.log("已用时间" + other.usetime);
+         console.log("预计时间" + other.totaltime);
+      },
+
+      // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终返回true;
+      success: (res) => {
+
+         let data = res ? eval('(' + res + ')') : '';
+
+         let url = data.url + "?" + Math.random();
+
+         if (data.status == 2) {
+            $('#pic2').attr("src", url);
+            $('#pic2').show();
+            alert('上传完成');
+         }
+
+         if (data.status == 3) {
+            Progress2(100);
+            $('#pic2').attr("src", url);
+            $('#pic2').show();
+            alert('已经上传过了');
+            return false;
+         }
+
+         // 如果接口没有错误，必须要返回true，才不会终止上传循环
+         return true;
+      }
+   });	   
+   </script>
+</body>
+</html>
