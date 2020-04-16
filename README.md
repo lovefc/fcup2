@@ -2,94 +2,138 @@
 
 一个轻巧的js类库,用于在网页端上传大文件,大图片,可以设置多个上传参数,提供了多种回调.
 可以任意绑定id,自动生成上传表单,可以自定义文件头,其它参数,设置最大上传,最小上传,以及判断上传类型.
+现在已经支持断点续传,并且有详细的操作案例
 
 官网地址：http://www.fcup.top
 
-下载地址：https://gitee.com/lovefc/fcup2
+github：https://github.com/lovefc/fcup2
 
-![](https://www.showdoc.cc/server/api/common/visitfile/sign/20f40338081c1ea3b3a132955340c2f0?showdoc=.jpg)
+gitee：https://gitee.com/lovefc/fcup2
+
+![](/show.jpg)
+
 ### 安装教程
+
 直接下载源码或者使用git克隆
 
 ### 使用方法
 
 ```javascript
-  // 上传案例
-  let up = new fcup({
+   // 上传案例
+   let up = new fcup({
 
-    id: "upid", // 绑定id
+      id: "upid", // 绑定id
 
-    url: "./php/file.php", // url地址
-
-    type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
-
-    shardsize: "0.01", // 每次分片大小，单位为M，默认1M
-
-    minsize: '', // 最小文件上传M数，单位为M，默认为无
-
-    maxsize: "50", // 上传文件最大M数，单位为M，默认200M
-	
-	// headers: {"version": "fcup-v2.0"}, // 附加的文件头
+      url: "server/php_db/upload.php", // url地址
 	  
-	// apped_data: {}, //每次上传的附加数据
-	
-    // 定义错误信息
-    errormsg: {
-      1000: "未找到该上传id",
-      1001: "类型不允许上传",
-      1002: "上传文件过小",
-      1003: "上传文件过大",
-      1004: "请求超时"
-    },
+	  checkurl: "server/php_db/check.php", // 检查上传url地址
 
-    // 开始事件                
-    start: () => {
-      console.log('开始上传');
-    },
+      type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
 
-    // 等待上传事件，可以用来loading
-    beforeSend: () => {
-      console.log('等待请求中');
-    },
+      shardsize: "0.005", // 每次分片大小，单位为M，默认1M
 
-    // 上传进度事件
-    progress: (num, other) => {
-      console.log(num);
-      console.log('上传进度' + num);
-      console.log("上传类型" + other.type);
+      minsize: '', // 最小文件上传M数，单位为M，默认为无
 
-      // 以下仅作参考,并不是太准确		 
-      console.log("已经上传" + other.current);
-      console.log("剩余上传" + other.surplus);
-      console.log("已用时间" + other.usetime);
-      console.log("预计时间" + other.totaltime);
-    },
+      maxsize: "2", // 上传文件最大M数，单位为M，默认200M
+      
+	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头
+	  
+	  // apped_data: {}, //每次上传的附加数据
+	  
+      // 定义错误信息
+      errormsg: {
+         1000: "未找到上传id",
+         1001: "类型不允许上传",
+         1002: "上传文件过小",
+         1003: "上传文件过大",
+         1004: "上传请求超时"
+      },
+      
+      // 错误提示
+      error: (msg) => {
+         alert(msg);
+      },      
 
-    // 错误提示
-    error: (msg) => {
-      alert(msg);
-    },
+      // 初始化事件                
+      start: () => {
+         console.log('上传已准备就绪');
+         Progress(0);
+      },
 
-    // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终要返回true;
-    success: (res) => {
+      // 等待上传事件，可以用来loading
+      beforeSend: () => {
+         console.log('等待请求中');
+      },
 
-      let data = res ? eval('(' + res + ')') : '';
+      // 上传进度事件
+      progress: (num, other) => {
+         Progress(num);
+         console.log(num);
+         console.log('上传进度' + num);
+         console.log("上传类型" + other.type);
+         console.log("已经上传" + other.current);
+         console.log("剩余上传" + other.surplus);
+         console.log("已用时间" + other.usetime);
+         console.log("预计时间" + other.totaltime);
+      },
+	  
+      // 检查地址回调,用于判断文件是否存在,类型,当前上传的片数等操作
+      checksuccess: (res) => {
+	  
+         let data = res ? eval('(' + res + ')') : '';
+		 
+		 let status = data.status;
+		 
+         let url = data.url;
+		 
+		 let msg = data.message;
+		 
+		 // 错误提示
+         if (status == 1 ) {
+            alert(msg);
+            return false;
+         }
+		 
+		 // 已经上传
+         if (status == 2) {
+            Progress(100);
+            $('#pic').attr("src", url);
+            $('#pic').show();
+			alert('图片已存在');
+            return false;
+         }
+         
+		// 如果提供了这个参数,那么将进行断点上传的准备
+		if(data.file_index){
+           // 起始上传的切片要从1开始
+		   let file_index = data.file_index ? parseInt(data.file_index) : 1;
+           // 设置上传切片的起始位置		   
+		   up.setshard(file_index);
+		}
+		 
+        // 如果接口没有错误，必须要返回true，才不会终止上传
+         return true;
+      },
+	  
+      // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终返回true;
+      success: (res) => {
 
-      let url = data.url + "?" + Math.random();
+         let data = res ? eval('(' + res + ')') : '';
 
-      if (data.status == 2) {
-        alert('上传完成');
+         let url = data.url + "?" + Math.random();
+		 
+		 let file_index = data.file_index ? parseInt(data.file_index) : 1;
+
+         if (data.status == 2) {
+            $('#pic').attr("src", url);
+            $('#pic').show();
+            alert('上传完成');
+         }
+
+         // 如果接口没有错误，必须要返回true，才不会终止上传循环
+         return true;
       }
-
-      if (data.status == 3) {
-        alert('已经上传过了');
-        return false;
-      }
-
-      // 如果接口没有错误，必须要返回true，才不会终止上传循环
-      return true;
-    }
-  });
+   });	
 ```
 
 ### 前端参数详细
@@ -98,6 +142,7 @@
 |----    |-------    |--- |---|------      | 
 |id | string | 否 | 无 |     dom的id        | 
 |url |string | 否 | 无  |   上传到服务器的url  |
+|checkurl |string | 否 | 无  |   检查上传url地址  |
 |type |string | 是  |  空 |  限制上传类型，多个用,号分割(不区分大小写),为空不限制  |
 |shardsize    | int,float | 否   | 2   |     每次分片的大小,单位为M,因为要计算md5,所以如果条件允许,不要设定的太小     |
 |minsize    | int,float | 是   | 空   |  上传文件的最小M数   |
@@ -110,8 +155,15 @@
 |beforeSend |function   |是   | fucntion |  等待上传事件  |
 |progress |function   |是   | fucntion |  上传进度事件  |
 |error |function   |是   | fucntion |  内部的错误提示函数  |
+|checksuccess |function   |是   | fucntion |  检查地址回调,用于判断文件是否存在,类型,改变当前上传的片数等操作 |
 |success |function   |是   | fucntion |  数据成功传递到后端的事件,这是一个循环事件 |
 
+### 常用函数
+| 函数名 | 说明 |
+|----    |------      | 
+|fcup.setshard(file_index)|    设置当前的分片数起始数,用于断点上传时改变       | 
+|fcup.cancel()|取消上传事件  |
+|fcup.startUpload()|开始上传事件  |
 
 ### 后端参数详情
 
@@ -148,3 +200,5 @@
 2020/01/30: 优化了时间计算,添加了可自定义header头的功能
 
 2020/02/01: 多实例化,可以在同一个页面添加多个上传功能
+
+2020/04/16: 分离了文件判断和上传的操作,添加了断点续传功能
