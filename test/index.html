@@ -49,14 +49,14 @@
 
 <body>
    <div style="margin: 100px auto;text-align: center">
-      <h3>fcup.js-大文件分片上传插件</h3>
-	  <h4>演示案例</h4>
+      <h2>fcup.js-大文件分片上传插件</h2>
+	  <h3>分片上传 断点续传</h3>
       <br />
       <!-- 进度条html元素 -->
       <progress id="myProgress" value="0" max="100"></progress> <span id="mySpan">0%</span>
 
       <!-- 上传按钮 -->
-      <button id="upid">上传</button><br />
+      <button id="upid">选择上传</button> <button id="cancel" onclick="up.cancel()">取消上传事件</button><button id="cancel" onclick="up.startUpload()">开始上传事件</button><br /><br />
       <br />
       <img src="" id="pic" style="width:200px;display:none">
       <br /><br />
@@ -64,30 +64,33 @@
       <progress id="myProgress2" value="0" max="100"></progress> <span id="mySpan2">0%</span>
 
       <!-- 上传按钮 -->
-      <button id="upid2">上传</button><br />
+      <button id="upid2">选择上传</button> <button id="cancel" onclick="up2.cancel()">取消上传事件</button><button id="cancel" onclick="up2.startUpload()">开始上传事件</button><br /><br />
       <br />
-      <img src="" id="pic2" style="width:200px;display:none">
+      <img src="" id="pic2" style="width:200px;display:none">	  
+	  
    </div>
    <!--  jquery  -->
    <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
    <!--  fcup.js  -->
-   <script src="../src/fcup.min.js"></script>
+   <script src="../src/fcup.min.js?v=2.1"></script>
 
    <script>
    // 上传案例
-   new fcup({
+   let up = new fcup({
 
       id: "upid", // 绑定id
 
-      url: "server/php/file.php", // url地址
+      url: "server/php_db/upload.php", // url地址
+	  
+	  checkurl: "server/php_db/check.php", // 检查上传url地址
 
       type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
 
-      shardsize: "0.1", // 每次分片大小，单位为M，默认1M
+      shardsize: "0.005", // 每次分片大小，单位为M，默认1M
 
       minsize: '', // 最小文件上传M数，单位为M，默认为无
 
-      maxsize: "50", // 上传文件最大M数，单位为M，默认200M
+      maxsize: "2", // 上传文件最大M数，单位为M，默认200M
       
 	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头
 	  
@@ -129,13 +132,53 @@
          console.log("已用时间" + other.usetime);
          console.log("预计时间" + other.totaltime);
       },
-
+	  
+      // 检查地址回调,用于判断文件是否存在,类型,当前上传的片数等操作
+      checksuccess: (res) => {
+	  
+         let data = res ? eval('(' + res + ')') : '';
+		 
+		 let status = data.status;
+		 
+         let url = data.url;
+		 
+		 let msg = data.message;
+		 
+		 // 错误提示
+         if (status == 1 ) {
+            alert(msg);
+            return false;
+         }
+		 
+		 // 已经上传
+         if (status == 2) {
+            Progress(100);
+            $('#pic').attr("src", url);
+            $('#pic').show();
+			alert('图片已存在');
+            return false;
+         }
+         
+		// 如果提供了这个参数,那么将进行断点上传的准备
+		if(data.file_index){
+           // 起始上传的切片要从1开始
+		   let file_index = data.file_index ? parseInt(data.file_index) : 1;
+           // 设置上传切片的起始位置		   
+		   up.setshard(file_index);
+		}
+		 
+        // 如果接口没有错误，必须要返回true，才不会终止上传
+         return true;
+      },
+	  
       // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终返回true;
       success: (res) => {
 
          let data = res ? eval('(' + res + ')') : '';
 
          let url = data.url + "?" + Math.random();
+		 
+		 let file_index = data.file_index ? parseInt(data.file_index) : 1;
 
          if (data.status == 2) {
             $('#pic').attr("src", url);
@@ -143,33 +186,33 @@
             alert('上传完成');
          }
 
-         if (data.status == 3) {
-            Progress(100);
-            $('#pic').attr("src", url);
-            $('#pic').show();
-            alert('已经上传过了');
-            return false;
-         }
-
          // 如果接口没有错误，必须要返回true，才不会终止上传循环
          return true;
       }
    });	  
    
-   let up = new fcup({
+   
+   // 上传案例2
+   let up2 = new fcup({
 
       id: "upid2", // 绑定id
 
-      url: "server/php/file.php", // url地址
+      url: "server/php_db/upload.php", // url地址
+	  
+	  checkurl: "server/php_db/check.php", // 检查上传url地址
 
       type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
 
-      shardsize: "0.1", // 每次分片大小，单位为M，默认1M
+      shardsize: "0.005", // 每次分片大小，单位为M，默认1M
 
       minsize: '', // 最小文件上传M数，单位为M，默认为无
 
-      maxsize: "50", // 上传文件最大M数，单位为M，默认200M
-
+      maxsize: "2", // 上传文件最大M数，单位为M，默认200M
+      
+	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头
+	  
+	  // apped_data: {}, //每次上传的附加数据
+	  
       // 定义错误信息
       errormsg: {
          1000: "未找到上传id",
@@ -206,13 +249,53 @@
          console.log("已用时间" + other.usetime);
          console.log("预计时间" + other.totaltime);
       },
-
+	  
+      // 检查地址回调,用于判断文件是否存在,类型,当前上传的片数等操作
+      checksuccess: (res) => {
+	  
+         let data = res ? eval('(' + res + ')') : '';
+		 
+		 let status = data.status;
+		 
+         let url = data.url;
+		 
+		 let msg = data.message;
+		 
+		 // 错误提示
+         if (status == 1 ) {
+            alert(msg);
+            return false;
+         }
+		 
+		 // 已经上传
+         if (status == 2) {
+            Progress2(100);
+            $('#pic2').attr("src", url);
+            $('#pic2').show();
+			alert('图片已存在');
+            return false;
+         }
+         
+		// 如果提供了这个参数,那么将进行断点上传的准备
+		if(data.file_index){
+           // 起始上传的切片要从1开始
+		   let file_index = data.file_index ? parseInt(data.file_index) : 1;
+           // 设置上传切片的起始位置		   
+		   up2.setshard(file_index);
+		}
+		 
+        // 如果接口没有错误，必须要返回true，才不会终止上传
+         return true;
+      },
+	  
       // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终返回true;
       success: (res) => {
 
          let data = res ? eval('(' + res + ')') : '';
 
          let url = data.url + "?" + Math.random();
+		 
+		 let file_index = data.file_index ? parseInt(data.file_index) : 1;
 
          if (data.status == 2) {
             $('#pic2').attr("src", url);
@@ -220,18 +303,10 @@
             alert('上传完成');
          }
 
-         if (data.status == 3) {
-            Progress2(100);
-            $('#pic2').attr("src", url);
-            $('#pic2').show();
-            alert('已经上传过了');
-            return false;
-         }
-
          // 如果接口没有错误，必须要返回true，才不会终止上传循环
          return true;
       }
-   });	   
+   });	     
    </script>
 </body>
 </html>

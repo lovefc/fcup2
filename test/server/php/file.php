@@ -35,54 +35,35 @@ $suffix  = isset($_POST['file_suffix']) ?  $_POST['file_suffix'] : null; //当�
 //echo '总片数：'.$total.'当前片数：'.$index;
 
 // 输出json信息
-function jsonMsg($status,$message,$url=''){
+function jsonMsg($status,$message,$url='',$index=0){
    $arr['status'] = $status;
    $arr['message'] = $message;
    $arr['url'] = $url;
+   $arr['file_index'] = $index;
    echo json_encode($arr);
    die();
 }
 
-if(!$file || !$name){
-	jsonMsg(0,'没有文件');
-}
-
-// 简单的判断文件类型
-
+// 在实际使用中，用md5来给文件命名，这样可以减少冲突
+// 简单的判断文件类型s
 $info = pathinfo($name);
 
 // 取得文件后缀
+
 $ext = isset($info['extension'])?$info['extension']:'';
-
-/* 判断文件类型 */
-$imgarr = array('jpeg','jpg','png','gif');
-if(!in_array($ext,$imgarr)){
-    jsonMsg(0,'文件类型出错');
-}
-
-// 在实际使用中，用md5来给文件命名，这样可以减少冲突
 
 $file_name = $md5.'.'.$ext;
 
-$newfile = '../../upload/'.$file_name;
+$newfile = '../upload/'.$file_name;
+
+$log_file = '../upload/'.$md5.'.txt';
 
 // 文件可访问的地址
-$url = './upload/'.$file_name;
-
-/** 判断是否重复上传 **/
-
-// 清除文件状态
-clearstatcache($newfile);
-
-// 文件大小一样的，说明已经上传过了
-if(is_file($newfile) && ($size == filesize($newfile))){
-   jsonMsg(3,'已经上传过了',$url);          
-}
-/** 判断是否重复上传  **/
-
+$url = './server/upload/'.$file_name;
 
 // 这里判断有没有上传的文件流
 if ($file['error'] == 0) {
+	file_put_contents($log_file,$index);	
     // 如果文件不存在，就创建
     if (!file_exists($newfile)) {
         if (!move_uploaded_file($file['tmp_name'], $newfile)) {
@@ -90,9 +71,9 @@ if ($file['error'] == 0) {
         }
         // 片数相等，等于完成了
         if($index == $total ){  
-          jsonMsg(2,'上传完成',$url);
+          jsonMsg(2,'上传完成',$url,$index);
         }        
-        jsonMsg(1,'正在上传');
+        jsonMsg(1,'正在上传','',$index);
     }     
     // 如果当前片数小于等于总片数,就在文件后继续添加
     if($index <= $total){
@@ -102,10 +83,10 @@ if ($file['error'] == 0) {
         }
         // 片数相等，等于完成了
         if($index == $total ){  
-          jsonMsg(2,'上传完成',$url);
+          jsonMsg(2,'上传完成',$url,$index);
         }
-        jsonMsg(1,'正在上传');
-    }               
+        jsonMsg(1,'正在上传','',$index);
+    }   
 } else {
     jsonMsg(0,'没有上传文件');
 }
