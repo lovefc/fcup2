@@ -2,9 +2,9 @@
  * fcup大文件分片上传插件
  * author: lovefc
  * blog：https://lovefc.cn
- * github: https://github.com/lovefc/fcup
- * gitee: https://gitee.com/lovefc/fcup
- * time: 2020/01/30 10:12
+ * github: https://github.com/lovefc/fcup2
+ * gitee: https://gitee.com/lovefc/fcup2
+ * time: 2020/04/30 14:21
  */
 'use strice';
 (function (exports) {
@@ -18,9 +18,11 @@
         this.shardsize = '2';
         this.minsize;
         this.maxsize = "200";
+		// 检查url
+        this.checkurl = '';		
         this.url = '';
         this.headers = {
-            "version": "fcup-v2.0"
+            "version": "fcup-v2.1"
         }; 
         this.type = '';
         this.apped_data = {};
@@ -28,7 +30,8 @@
         this.currenttime = 0;
         this.reStatus = true;
         this.delaytime = 300;
-        this.timeout = 3000;
+        this.timeout = 10000;
+		this.canceStatus = 0;
         this.formdata = new FormData();
         this.xhr = new XMLHttpRequest();
         this.errormsg = {
@@ -45,7 +48,63 @@
         this.success = function (res) {
             return true;
         };
+        this.checksuccess = function (res) {
+            return true;
+        };		
         this.progress = function (num) {};
+		// 上传检查,可用于分片
+		this.upcheck = function (md5) {
+			if(!this.checkurl){
+				return false;
+			}
+			this.formdata.append('file_name',that.filename);
+			this.formdata.append('file_md5',md5);
+			this.formdata.append('file_size',that.size);
+			this.formdata.append('file_total',that.shardTotal);
+            if (this.apped_data) {
+                this.formdata.append("apped_data", JSON.stringify(this.apped_data));
+            }
+            let xhrs = new XMLHttpRequest();
+            let header = this.headers;
+            xhrs.open('POST', this.checkurl, false); // 同步
+            if (this.headers) {
+                if (Object.prototype.toString.call(header) === '[object Object]') {
+                    for (let i in header) {
+                        xhrs.setRequestHeader(i, header[i]);
+                    };
+                }
+            }
+            xhrs.onreadystatechange = function () {
+                if (xhrs.status == 404) {
+                    return;
+                }
+                if ((xhrs.readyState == 4) && (xhrs.status == 200)) {
+					if (typeof that.checksuccess == 'function') {
+                           that.alreadyExists = that.checksuccess(xhrs.responseText);
+				    }
+                 }
+			}
+            xhrs.send(this.formdata);
+            this.formdata.delete('file_md5');
+			this.formdata.delete('file_name');
+			this.formdata.delete('file_size');
+			this.formdata.delete('file_total');
+            if (that.apped_data) {
+                this.formdata.delete("apped_data");
+            }
+			xhrs = null;
+		};
+		// 设置当前切片
+		this.setshard = function (index) {
+			index = index < 1 ? 1 : index;
+            that.k = index - 1;
+            that.shardIndex = index;			
+		};
+		// 取消上传
+		this.cancel = function () {		
+		    that.cancelStatus = 1;
+		};		
+		// 配置参数
         this.exetnd = function (jb) {
             if (Object.prototype.toString.call(jb) === '[object Object]') {
                 for (let i in jb) {
@@ -54,6 +113,7 @@
                 this.init();
             }
         };
+		// 初始化操作
         this.init = function () {
             if (!this.id) {
                 return false;
@@ -73,10 +133,12 @@
             evt.initEvent("change", false, false);
             this.filedom.dispatchEvent(evt);
         };
+		// 注销
         this.destroy = function () {
             this.datas = [];
             this.file = null;
         };
+		// 创建元素
         this.credom = function () {
             let up_id = 'fcup_' + this.id + '_' + new Date().getTime();
             this.dom.innerHTML = this.domtext + '<input type="file" id="' + up_id + '" style="display:none;">';
@@ -89,9 +151,13 @@
             let files = that.filedom.files[0];
             that.upload(files);
         };
+		// 上传处理
         this.post = function (md5) {
             let shardCount = this.shardTotal;
             let shardIndex = this.shardIndex;
+			if(this.cancelStatus == 1){
+				return false;
+			}
             if (shardIndex >= (shardCount + 1) || (this.reStatus == false)) {
                 return false;
             }
@@ -125,7 +191,7 @@
                 that.startTime = new Date().getTime();
             };
             xhrs.onload = function () {
-                that.post(md5, shardCount);
+                that.post(md5);
             };
             xhrs.onreadystatechange = function () {
                 that.result(xhrs);
@@ -148,6 +214,7 @@
             this.k++;
             this.shardIndex++;
         };
+		// 时间计算
         this.computeTime = function (totalTime) {
             if (totalTime < 1000) {
                 totalTime = (totalTime / 1000).toFixed(4) + '秒';
@@ -160,6 +227,7 @@
             }
             return totalTime;
         };
+		// 结果处理
         this.result = function (xhr) {
             that.reStatus = false;
             if (xhr.status == 404) {
@@ -206,6 +274,7 @@
                 }
             }
         };
+		// 参数解析
         this.postData = function (i, start, end) {
             this.datas[i] = [];
             let file = this.file.slice(start, end);
@@ -215,6 +284,7 @@
             this.datas[i]["file_chunksize"] = file.size;
             this.datas[i]["file_suffix"] = this.suffix;
         };
+		// 大小格式
         this.limitFileSize = function (limitSize) {
             var arr = ["KB", "MB", "GB"],
                 limit = limitSize.toUpperCase(),
@@ -253,6 +323,7 @@
             }
             return sizestr;
         };
+		// 上传主函数
         this.upload = function (file) {
             if (!file) {
                 return;
@@ -266,6 +337,7 @@
             this.file = file;
             this.size = file.size;
             this.filename = file.name;
+			this.alreadyExists = true;
             let ext = this.filename.lastIndexOf("."),
                 ext_len = this.filename.length;
             this.suffix = this.filename.substring(ext + 1, ext_len).toLowerCase();
@@ -306,17 +378,18 @@
                 if (currentChunk < chunks) {
                     loadNext();
                 } else {
-                    md5id = spark.end();
+                    md5id = spark.end(); // 获取md5
+					that.md5str = md5id;
                     that.k = 0;
                     that.shardIndex = 1;
-					that.cachepertime = 0;
-                    that.post(md5id);
+					that.cachepertime = 0;		
+                    that.startUpload();					
+
                 }
             };
             let frOnerror = function () {};
             fileReader.onload = frOnload;
             fileReader.onerror = frOnerror;
-
             function loadNext() {
                 let start = currentChunk * chunkSize,
                     end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize,
@@ -327,6 +400,16 @@
             };
             loadNext();
         };
+		// 开始上传
+		this.startUpload = function(){
+		    that.upcheck(that.md5str); // 检查上传
+			if(that.alreadyExists == false){
+			    return;
+			}else{
+				that.cancelStatus = 0;
+                that.post(that.md5str);
+			}			
+		};
         this.exetnd(config);
     };
     exports.fcup = fcup;
