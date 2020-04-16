@@ -4,13 +4,13 @@
 可以任意绑定id,自动生成上传表单,可以自定义文件头,其它参数,设置最大上传,最小上传,以及判断上传类型.
 现在已经支持断点续传,并且有详细的操作案例
 
-官网地址：http://www.fcup.top
+官网：http://www.fcup.top
 
-github：https://github.com/lovefc/fcup2
+Gitee：https://gitee.com/lovefc/fcup2
 
-gitee：https://gitee.com/lovefc/fcup2
+Github：https://github.com/lovefc/fcup2
 
-![](/show.jpg)
+![](/show.png)
 
 ### 安装教程
 
