@@ -16,6 +16,8 @@ gitee：https://gitee.com/lovefc/fcup2
 
 直接下载源码或者使用git克隆
 
+备注:新版本的demo使用了sqlite数据库,注意php环境有没有sqlite扩展,另外上传目录要给读写权限
+
 ### 使用方法
 
 ```javascript
