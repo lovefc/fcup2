@@ -85,6 +85,7 @@ $datas = array(
 // 检查文件是否存在在数据库中
 $sql = "select * from files where file_md5 = '{$md5}' limit 1";
 $re = $DB->fetch($sql);
+$id = 0;
 if ($re) {
   // 文件可访问的地址
   $id = $re['id'];
@@ -93,7 +94,7 @@ if ($re) {
   $path = UP_PATH . $file_name;
   $file_size = $re['file_size'];
   $file_index = $re['file_index'];
-  $file_total = $re['file_tatal'];
+  $file_total = $re['file_total'];
   // 片数对比,如果一样,说明已经上传过了
   if ($file_index <= $file_total) {
     $content = file_get_contents($file['tmp_name']);
@@ -105,7 +106,7 @@ if ($re) {
     if ($index == $total) {
       jsonMsg(2, '上传完成', $url, $index);
     }
-    jsonMsg(1, '正在上传', '', $index);
+	jsonMsg(1, '正在上传', '', $index);
   }
 }else{
 	// 开始写入数据库
@@ -117,7 +118,9 @@ if (!file_exists($newfile)) {
   if (!move_uploaded_file($file['tmp_name'], $newfile)) {
     jsonMsg(0, '无法移动文件');
   }
-  add($datas); // 添加到数据库
+  if($id == 0){
+    add($datas); // 添加到数据库
+  }
   // 片数相等，等于完成了
   if ($index == $total) {
     jsonMsg(2, '上传完成', $url, $index);
