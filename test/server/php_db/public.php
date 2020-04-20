@@ -24,7 +24,7 @@ require_once(PATH . '/class/SQLite.php');
 
 define('DBFILE', PATH . '/db/' . md5('files') . '.db'); // 数据库文件名
 
-define('UP_PATH', dirname(PATH) . '/Uploads/newcar/'); //上传路径目录
+define('UP_PATH', dirname(PATH) . '/upload/'); //上传路径目录
 
 
 /**
@@ -48,7 +48,7 @@ function getHttpType()
 }
 
 // 当前域名
-$now_url = getHostDomain().dirname(dirname($_SERVER['PHP_SELF'])).'/Uploads/newcar/';
+$now_url = getHostDomain().dirname(dirname($_SERVER['PHP_SELF'])).'/upload/';
 
 // 定义当前访问域名
 define('UP_URL', $now_url);
