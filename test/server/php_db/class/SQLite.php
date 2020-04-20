@@ -1,6 +1,9 @@
 <?php
 /***
  * //创建实例
+ * author:lovefc
+ * page:https://lovefc.cn
+ * time:2020/04/16 04:20
  * $DB=new SQLite('ceshi.db'); //这个数据库文件名字任意
  * //创建数据库表。
  * $DB->query("create table test(id integer primary key,title varchar(50))");

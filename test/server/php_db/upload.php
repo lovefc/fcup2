@@ -4,6 +4,7 @@
  * 上传文件
  * author:lovefc
   * time:2020/04/16 14:00
+ * page:https://lovefc.cn  
  */
 
 set_time_limit(600);
@@ -58,9 +59,12 @@ $info = pathinfo($name);
 
 $ext = isset($info['extension']) ? $info['extension'] : '';
 
-$file_name = $md5 . '.' . $ext;
+$file_name = date("Y-m").'/'.$md5 . '.' . $ext;
 
 $newfile = UP_PATH . $file_name;
+
+// 上传文件
+creDir($newfile);
 
 // 文件可访问的地址
 $url =  UP_URL . $file_name;
@@ -91,9 +95,7 @@ if ($re) {
   $file_index = $re['file_index'];
   $file_total = $re['file_tatal'];
   // 片数对比,如果一样,说明已经上传过了
-  if ($file_index == $file_total) {
-    jsonMsg(2, '已经上传过了', $url);
-  } else {
+  if ($file_index <= $file_total) {
     $content = file_get_contents($file['tmp_name']);
     if (!file_put_contents($path, $content, FILE_APPEND)) {
       jsonMsg(0, '无法写入文件');
@@ -116,19 +118,6 @@ if (!file_exists($newfile)) {
     jsonMsg(0, '无法移动文件');
   }
   add($datas); // 添加到数据库
-  // 片数相等，等于完成了
-  if ($index == $total) {
-    jsonMsg(2, '上传完成', $url, $index);
-  }
-  jsonMsg(1, '正在上传', '', $index);
-}
-// 如果当前片数小于等于总片数,就在文件后继续添加
-if ($index <= $total) {
-  $content = file_get_contents($file['tmp_name']);
-  if (!file_put_contents($newfile, $content, FILE_APPEND)) {
-    jsonMsg(0, '无法写入文件');
-  }
-  update($md5, $index); // 更新片数
   // 片数相等，等于完成了
   if ($index == $total) {
     jsonMsg(2, '上传完成', $url, $index);
