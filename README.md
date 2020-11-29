@@ -38,7 +38,7 @@ Github：https://github.com/lovefc/fcup2
 
       maxsize: "2", // 上传文件最大M数，单位为M，默认200M
       
-	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头
+	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头,默认为null, 请注意指定header头时将不能进行跨域操作
 	  
 	  // apped_data: {}, //每次上传的附加数据
 	  
@@ -149,7 +149,7 @@ Github：https://github.com/lovefc/fcup2
 |shardsize    | int,float | 否   | 2   |     每次分片的大小,单位为M,因为要计算md5,所以如果条件允许,不要设定的太小     |
 |minsize    | int,float | 是   | 空   |  上传文件的最小M数   |
 |maxsize    | int,float | 是   | 空   |  上传文件的最大M数   |
-|headers |object   |是   | 空  |  每次上传附带的文件头  |
+|headers |object   |是   | 空  |  每次上传附带的文件头,请注意指定header头时将不能进行跨域操作 |
 |apped_data |object   |是   | 空  |  每次上传附带的其它参数,传递到后台  |
 |timeout |int   |否   | 3000 |  ajax超时时间  |
 |errormsg |object   |否   | object |  错误提示 | 
@@ -204,3 +204,5 @@ Github：https://github.com/lovefc/fcup2
 2020/02/01: 多实例化,可以在同一个页面添加多个上传功能
 
 2020/04/16: 分离了文件判断和上传的操作,添加了断点续传功能
+
+2020/11/29: 修复了跨域上传的bug,请注意指定header头时将不能进行跨域操作
