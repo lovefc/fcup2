@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta charset="utf-8" />
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+   <title>jquery文件分段上传插件-fcup.js-node</title>
+   <meta name="keywords" content="fcup.js,大文件上传,分段上传,h5上传,上传插件,切片上传,html5上传,web上传,文件上传" />
+   <meta name="description" content="fcup.js是一款支持大文件切片上传插件，使用简单方便，功能强大" />
+   <script type="text/javascript">
+      // 进度条
+      function Progress(value) {
+         var myProgress = document.getElementById("myProgress");
+         var mySpan = document.getElementById("mySpan");
+         mySpan.innerText = value + "%";
+         myProgress.value = value;
+      }
+   </script>
+   <style>
+      body {
+         font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+      }
+      a {
+         color: blue;
+      }
+      progress{
+          -webkit-appearance: none;
+      }
+      ::-webkit-progress-bar{
+         background-color: #ccc;
+     }
+     ::-webkit-progress-value {
+        background-color: rgb(, , );
+     }
+     ::-webkit-progress-inner-element {
+        border: px solid black;
+        /* 进度条的内边框，注意跟outline区分 */
+    }	  
+   </style>
+</head>
+
+<body>
+   <div style="margin: 100px auto;text-align: center">
+
+      <h2>fcup.js-大文件分片上传插件</h2>
+	  <h3>NODE示例</h3>
+      <br /><br />
+      <!-- 进度条html元素 -->
+      <progress id="myProgress" value="0" max="100"></progress> <span id="mySpan">0%</span>
+
+      <!-- 上传按钮 -->
+      <button id="upid">选择上传</button> <button id="cancel" onclick="up.cancel()">取消上传事件</button><button id="cancel" onclick="up.startUpload()">开始上传事件</button><br /><br />
+      <br />
+      <img src="" id="pic" style="width:200px;display:none">	  
+	  <br /><br />
+	  <h3><a href="https://lovefc.cn">作者主页</a>   <a href="https://gitee.com/lovefc/fcup2">Gitee</a>   <a href="https://github.com/lovefc/fcup2">Github</a></h3>
+   </div>
+   <!--  jquery  -->
+   <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+   <!--  fcup.js  -->
+   <script src="../src/fcup.min.js?v=2.2"></script>
+
+   <script>
+   // 上传案例
+   let up = new fcup({
+
+      id: "upid", // 绑定id
+
+      url: "http://127.0.0.1:3001/app/upload", // url地址
+
+      type: "gif,jpg,jpeg,png", // 限制上传类型，为空不限制
+
+      shardsize: "0.01", // 每次分片大小，单位为M，默认1M
+
+      minsize: '', // 最小文件上传M数，单位为M，默认为无
+
+      maxsize: "2000", // 上传文件最大M数，单位为M，默认200M
+      
+	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头,默认为null, 请注意指定header头时将不能进行跨域操作
+	  
+	  // apped_data: {}, //每次上传的附加数据
+	  
+      // 定义错误信息
+      errormsg: {
+         1000: "未找到上传id",
+         1001: "类型不允许上传",
+         1002: "上传文件过小",
+         1003: "上传文件过大",
+         1004: "上传请求超时"
+      },
+      
+      // 错误提示
+      error: (msg) => {
+         alert(msg);
+      },      
+
+      // 初始化事件                
+      start: () => {
+         console.log('上传已准备就绪');
+         Progress(0);
+      },
+
+      // 等待上传事件，可以用来loading
+      beforeSend: () => {
+         console.log('等待请求中');
+      },
+
+      // 上传进度事件
+      progress: (num, other) => {
+         Progress(num);
+         console.log(num);
+         console.log('上传进度' + num);
+         console.log("上传类型" + other.type);
+         console.log("已经上传" + other.current);
+         console.log("剩余上传" + other.surplus);
+         console.log("已用时间" + other.usetime);
+         console.log("预计时间" + other.totaltime);
+      },
+	  
+      // 上传成功回调，回调会根据切片循环，要终止上传循环，必须要return false，成功的情况下要始终返回true;
+      success: (res) => {
+
+         let data = res ? eval('(' + res + ')') : '';
+
+         let url = data.url + "?" + Math.random();
+		 
+		 let file_index = data.file_index ? parseInt(data.file_index) : 1;
+		 
+		 // 错误处理
+         if(data.status == 0){
+		    alert(data.message);
+			Progress(0); // 进度归零
+			return false;
+		 }
+         if (data.status == 2) {
+            $('#pic').attr("src", url);
+            $('#pic').show();
+            alert('上传完成');
+         }
+
+         // 如果接口没有错误，必须要返回true，才不会终止上传循环
+         return true;
+      }
+   });	  
+  
+   </script>
+</body>
+<!--<script type="text/javascript" src="https://js.users.51.la/20622113.js"></script>-->
+</html>
