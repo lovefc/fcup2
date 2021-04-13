@@ -10,6 +10,8 @@ Gitee：https://gitee.com/lovefc/fcup2
 
 Github：https://github.com/lovefc/fcup2
 
+NODE完整案例: https://gitee.com/lovefc/webpack
+
 ![](/show.png)
 
 ### 使用教程
@@ -18,7 +20,6 @@ Github：https://github.com/lovefc/fcup2
 
 备注:新版本的demo使用了sqlite数据库,注意php环境有没有sqlite扩展,另外上传目录要给读写权限
 
-NODE完整使用案例: https://gitee.com/lovefc/webpack
 
 ### 使用方法
 
