@@ -4,7 +4,7 @@
 可以任意绑定id,自动生成上传表单,可以自定义文件头,其它参数,设置最大上传,最小上传,以及判断上传类型.
 现在已经支持断点续传,并且有详细的操作案例
 
-官网：http://www.fcup.top
+官网：http://fcup.lovefc.cn
 
 Gitee：https://gitee.com/lovefc/fcup2
 
@@ -12,11 +12,13 @@ Github：https://github.com/lovefc/fcup2
 
 ![](/show.png)
 
-### 安装教程
+### 使用教程
 
 直接下载源码或者使用git克隆
 
 备注:新版本的demo使用了sqlite数据库,注意php环境有没有sqlite扩展,另外上传目录要给读写权限
+
+NODE完整使用案例: https://gitee.com/lovefc/webpack
 
 ### 使用方法
 
