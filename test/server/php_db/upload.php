@@ -3,7 +3,7 @@
 /**
  * 上传文件
  * author:lovefc
-  * time:2020/04/16 14:00
+ * time:2020/04/16 14:00
  * page:https://lovefc.cn  
  */
 
@@ -59,7 +59,7 @@ $info = pathinfo($name);
 
 $ext = isset($info['extension']) ? $info['extension'] : '';
 
-$file_name = date("Y-m").'/'.$md5 . '.' . $ext;
+$file_name = date("Y-m") . '/' . $md5 . '.' . $ext;
 
 $newfile = UP_PATH . $file_name;
 
@@ -73,13 +73,13 @@ $url =  UP_URL . $file_name;
 // 定义要插入数据库的数据
 $time = time();
 $datas = array(
-    $file_name,
-	$ext,
-	$size,
-	$md5,
-	$total,
-	$index,
-	$time
+  $file_name,
+  $ext,
+  $size,
+  $md5,
+  $total,
+  $index,
+  $time
 );
 
 // 检查文件是否存在在数据库中
@@ -101,25 +101,19 @@ if ($re) {
     if (!file_put_contents($path, $content, FILE_APPEND)) {
       jsonMsg(0, '无法写入文件');
     }
-	update($md5, $index);
+    update($md5, $index);
     // 片数相等，等于完成了
     if ($index == $total) {
       jsonMsg(2, '上传完成', $url, $index);
     }
-	jsonMsg(1, '正在上传', '', $index);
+    jsonMsg(1, '正在上传', '', $index);
   }
-}else{
-	// 开始写入数据库
-	add($datas);
-}
-
-// 如果文件不存在，就创建
-if (!file_exists($newfile)) {
-  if (!move_uploaded_file($file['tmp_name'], $newfile)) {
-    jsonMsg(0, '无法移动文件');
-  }
-  if($id == 0){
-    add($datas); // 添加到数据库
+} else {
+  // 开始写入数据库
+  add($datas);
+  $content = file_get_contents($file['tmp_name']);
+  if (!file_put_contents($path, $content, FILE_APPEND)) {
+    jsonMsg(0, '无法写入文件');
   }
   // 片数相等，等于完成了
   if ($index == $total) {
