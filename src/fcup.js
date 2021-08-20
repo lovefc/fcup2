@@ -5,7 +5,7 @@
  * github: https://github.com/lovefc/fcup2
  * gitee: https://gitee.com/lovefc/fcup2
  * time: 2020/04/30 14:21
- * uptime: 2020/11/29 16:12 修改跨域问题
+ * uptime: 2021/08/20 16:39 修改上传大小值限定精度问题
  */
 'use strice';
 (function (exports) {
@@ -299,7 +299,7 @@
             for (var i = 0; i < arr.length; i++) {
                 var leval = limit.indexOf(arr[i]);
                 if (leval > -1) {
-                    limitNum = parseInt(limit.substr(0, leval)) * Math.pow(1024, (i + 1));
+                    limitNum = parseFloat(limit.substr(0, leval)) * Math.pow(1024, (i + 1));
                     break;
                 }
             }
@@ -357,6 +357,7 @@
             }
             if (this.minsize) {
                 let limitNum = this.limitFileSize(this.minsize + 'MB');
+				console.log(limitNum);
                 if (file.size < limitNum) {
                     this.error(this.errormsg['1002']);
                     return;
