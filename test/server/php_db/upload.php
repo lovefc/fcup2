@@ -86,12 +86,14 @@ $datas = array(
 $sql = "select * from files where file_md5 = '{$md5}' limit 1";
 $re = $DB->fetch($sql);
 $id = 0;
+$url =  UP_URL . $file_name;
+$path = UP_PATH . $file_name;
 if ($re) {
   // 文件可访问的地址
   $id = $re['id'];
   $file_name = $re['path'];
   $url =  UP_URL . $file_name;
-  $path = UP_PATH . $file_name;
+  $path = UP_PATH . $file_name;  
   $file_size = $re['file_size'];
   $file_index = $re['file_index'];
   $file_total = $re['file_total'];
