@@ -4,36 +4,49 @@
  * blog：https://lovefc.cn
  * github: https://github.com/lovefc/fcup2
  * gitee: https://gitee.com/lovefc/fcup2
- * time: 2020/04/30 14:21
- * uptime: 2021/08/20 16:39 修改上传大小值限定精度问题
+ * uptime: 2021/12/20 10:40 优化参数命名
  */
-'use strice';
-(function (exports) {
-    let fcup = function (config) {
+;(function (factory) {
+    if (typeof exports === "object") {
+        module.exports = factory();
+    } else if (typeof define === "function" && define.amd) {
+        define(factory);
+    } else {
+        let glob;
+        try {
+            glob = window;
+        } catch (e) {
+            glob = self;
+        }
+        glob.fcup = factory();
+    }
+})(function () {
+	'use strice';
+    return function (config) {
         let that = this;
         if (!new.target) {
             return new fcup();
         };
         this.datas = [];
         this.id = '';
-        this.shardsize = '2';
-        this.minsize;
-        this.maxsize = "200";
+        this.shard_size = '2';
+        this.min_size;
+        this.max_size = "200";
         // 检查url
-        this.checkurl = '';
+        this.check_url = '';
         this.url = '';
         this.headers = null;
         this.type = '';
         this.apped_data = {};
-        this.currentsize = 0;
-        this.currenttime = 0;
-        this.reStatus = true;
-        this.delaytime = 300;
+        this.current_size = 0;
+        this.current_time = 0;
+        this.result_status = true;
+        this.delay_time = 300;
         this.timeout = 10000;
-        this.canceStatus = 0;
-        this.formdata = new FormData();
+        this.dcance_status = 0;
+        this.form_data = new FormData();
         this.xhr = new XMLHttpRequest();
-        this.errormsg = {
+        this.error_msg = {
             1000: "未找到该上传id",
             1001: "不允许上传的文件类型",
             1002: "上传文件过小",
@@ -47,10 +60,10 @@
         this.success = function (res) {
             return true;
         };
-        this.checksuccess = function (res) {
+        this.check_success = function (res) {
             return true;
         };
-        this.createcors = function () {
+        this.create_cors = function () {
             let xhr = new XMLHttpRequest();
             if ('withCredentials' in xhr) {} else if (typeof XDomainRequest != 'undefined') {
                 let xhr = new XDomainRequest();
@@ -59,8 +72,7 @@
             }
             return xhr;
         };
-
-        this.setheader = function (xhrs) {
+        this.set_header = function (xhrs) {
             let header = this.headers;
             if (header) {
                 if (Object.prototype.toString.call(header) === '[object Object]') {
@@ -71,45 +83,44 @@
             }
             header = null;
         };
-
         this.progress = function (num) {};
         // 上传检查,可用于分片
         this.upcheck = function (md5) {
-            if (!this.checkurl) {
+            if (!this.check_url) {
                 return false;
             }
-            this.formdata.append('file_name', that.filename);
-            this.formdata.append('file_md5', md5);
-            this.formdata.append('file_size', that.size);
-            this.formdata.append('file_total', that.shardTotal);
+            this.form_data.append('file_name', that.filename);
+            this.form_data.append('file_md5', md5);
+            this.form_data.append('file_size', that.size);
+            this.form_data.append('file_total', that.shardTotal);
             if (this.apped_data) {
-                this.formdata.append("apped_data", JSON.stringify(this.apped_data));
+                this.form_data.append("apped_data", JSON.stringify(this.apped_data));
             }
-            let xhrs = new this.createcors();
-            xhrs.open('POST', this.checkurl, false); // 同步
-            this.setheader(xhrs);
+            let xhrs = new this.create_cors();
+            xhrs.open('POST', this.check_url, false); // 同步
+            this.set_header(xhrs);
             xhrs.onreadystatechange = function () {
                 if (xhrs.status == 404) {
                     return;
                 }
                 if ((xhrs.readyState == 4) && (xhrs.status == 200)) {
-                    if (typeof that.checksuccess == 'function') {
-                        that.alreadyExists = that.checksuccess(xhrs.responseText);
+                    if (typeof that.check_success == 'function') {
+                        that.alreadyExists = that.check_success(xhrs.responseText);
                     }
                 }
-            }
-            xhrs.send(this.formdata);
-            this.formdata.delete('file_md5');
-            this.formdata.delete('file_name');
-            this.formdata.delete('file_size');
-            this.formdata.delete('file_total');
+            };
+            xhrs.send(this.form_data);
+            this.form_data.delete('file_md5');
+            this.form_data.delete('file_name');
+            this.form_data.delete('file_size');
+            this.form_data.delete('file_total');
             if (that.apped_data) {
-                this.formdata.delete("apped_data");
+                this.form_data.delete("apped_data");
             }
             xhrs = null;
         };
         // 设置当前切片
-        this.setshard = function (index) {
+        this.set_shard = function (index) {
             index = index < 1 ? 1 : index;
             that.k = index - 1;
             that.shardIndex = index;
@@ -135,7 +146,7 @@
             let id = this.id;
             this.dom = document.querySelector(`#${id}`);
             if (this.dom === null) {
-                this.error(this.errormsg['1000']);
+                this.error(this.error_msg['1000']);
                 return;
             }
             this.domtext = this.dom.innerHTML;
@@ -172,28 +183,28 @@
             if (this.cancelStatus == 1) {
                 return false;
             }
-            if (shardIndex >= (shardCount + 1) || (this.reStatus == false)) {
+            if (shardIndex >= (shardCount + 1) || (this.result_status == false)) {
                 return false;
             }
             let file = this.datas[this.k];
-            this.formdata.append("file_data", file['file_data']);
-            this.formdata.append("file_name", file['file_name']);
-            this.formdata.append("file_size", file['file_size']);
-            this.formdata.append("file_chunksize", file['file_chunksize']);
-            this.formdata.append("file_suffix", file['file_suffix']);
-            this.formdata.append("file_total", shardCount);
-            this.formdata.append("file_md5", md5);
-            this.formdata.append("file_index", this.shardIndex);
-            this.currentsize += file['file_chunksize'];
+            this.form_data.append("file_data", file['file_data']);
+            this.form_data.append("file_name", file['file_name']);
+            this.form_data.append("file_size", file['file_size']);
+            this.form_data.append("file_chunksize", file['file_chunksize']);
+            this.form_data.append("file_suffix", file['file_suffix']);
+            this.form_data.append("file_total", shardCount);
+            this.form_data.append("file_md5", md5);
+            this.form_data.append("file_index", this.shardIndex);
+            this.current_size += file['file_chunksize'];
             if (this.apped_data) {
-                this.formdata.append("apped_data", JSON.stringify(this.apped_data));
+                this.form_data.append("apped_data", JSON.stringify(this.apped_data));
             }
-            let xhrs = this.createcors();
+            let xhrs = this.create_cors();
             xhrs.open('POST', this.url, true);
-            this.setheader(xhrs);
+            this.set_header(xhrs);
             xhrs.timeout = this.timeout;
             xhrs.onloadstart = function () {
-                let progress_num = that.getpercent(shardIndex, shardCount);
+                let progress_num = that.get_percent(shardIndex, shardCount);
                 that.progress_num = progress_num > 100 ? 100 : progress_num;
                 that.startTime = new Date().getTime();
             };
@@ -204,25 +215,25 @@
                 that.result(xhrs);
             };
             xhrs.ontimeout = function (e) {
-                that.error(that.errormsg['1004']);
+                that.error(that.error_msg['1004']);
             };
-            xhrs.send(this.formdata);
-            this.formdata.delete('file_data');
-            this.formdata.delete('file_name');
-            this.formdata.delete('file_size');
-            this.formdata.delete("file_chunksize");
-            this.formdata.delete("file_suffix");
-            this.formdata.delete('file_md5');
-            this.formdata.delete('file_total');
-            this.formdata.delete('file_index');
+            xhrs.send(this.form_data);
+            this.form_data.delete('file_data');
+            this.form_data.delete('file_name');
+            this.form_data.delete('file_size');
+            this.form_data.delete("file_chunksize");
+            this.form_data.delete("file_suffix");
+            this.form_data.delete('file_md5');
+            this.form_data.delete('file_total');
+            this.form_data.delete('file_index');
             if (that.apped_data) {
-                this.formdata.delete("apped_data");
+                this.form_data.delete("apped_data");
             }
             this.k++;
             this.shardIndex++;
         };
         // 时间计算
-        this.computeTime = function (totalTime) {
+        this.compute_time = function (totalTime) {
             if (totalTime < 1000) {
                 totalTime = (totalTime / 1000).toFixed(4) + '秒';
             } else {
@@ -236,29 +247,29 @@
         };
         // 结果处理
         this.result = function (xhr) {
-            that.reStatus = false;
+            that.result_status = false;
             if (xhr.status == 404) {
                 return;
             }
             if ((xhr.readyState == 4) && (xhr.status == 200)) {
                 let pertime = Math.round(new Date().getTime() - that.startTime);
-                that.shardTime += pertime;
+                that.shard_time += pertime;
                 if (that.progress_num < 80) {
                     that.cachepertime = pertime;
                 }
                 let total_time = that.cachepertime * that.shardTotal;
                 if (that.shardTotal == 1) {
-                    total_time = that.shardTime;
+                    total_time = that.shard_time;
                 }
-                let use_time = that.shardTime;
-                let total_times = that.computeTime(total_time);
-                let use_times = that.computeTime(use_time);
+                let use_time = that.shard_time;
+                let total_times = that.compute_time(total_time);
+                let use_times = that.compute_time(use_time);
                 let type = xhr.getResponseHeader("Content-Type");
                 let other = {
                     'totaltime': total_times,
                     'usetime': use_times,
-                    'current': this.getconver(that.currentsize),
-                    "surplus": this.getconver(that.size - that.currentsize),
+                    'current': this.get_conver(that.current_size),
+                    "surplus": this.get_conver(that.size - that.current_size),
                     "type": type
                 };
                 if (typeof that.progress == 'function') {
@@ -268,11 +279,11 @@
                     other.progress = that.progress_num;
                     if (that.progress_num == 100) {
                         setTimeout(function () {
-                            that.reStatus = that.success(xhr.responseText, other);
+                            that.result_status = that.success(xhr.responseText, other);
                             that.destroy();
-                        }, that.delaytime);
+                        }, that.delay_time);
                     } else {
-                        that.reStatus = that.success(xhr.responseText);
+                        that.result_status = that.success(xhr.responseText);
                     }
                 }
             } else {
@@ -282,7 +293,7 @@
             }
         };
         // 参数解析
-        this.postData = function (i, start, end) {
+        this.post_data = function (i, start, end) {
             this.datas[i] = [];
             let file = this.file.slice(start, end);
             this.datas[i]["file_data"] = file;
@@ -292,7 +303,7 @@
             this.datas[i]["file_suffix"] = this.suffix;
         };
         // 大小格式
-        this.limitFileSize = function (limitSize) {
+        this.limit_file_size = function (limitSize) {
             var arr = ["KB", "MB", "GB"],
                 limit = limitSize.toUpperCase(),
                 limitNum = 0;
@@ -305,7 +316,7 @@
             }
             return limitNum;
         };
-        this.getpercent = function (num, total) {
+        this.get_percent = function (num, total) {
             num = parseFloat(num);
             total = parseFloat(total);
             if (isNaN(num) || isNaN(total)) {
@@ -313,7 +324,7 @@
             }
             return total <= 0 ? 0 : (Math.round(num / total * 10000) / 100.00);
         };
-        this.getconver = function (limit) {
+        this.get_conver = function (limit) {
             let size = "";
             if (limit < 0.1 * 1024) {
                 size = limit.toFixed(2) + "B";
@@ -338,9 +349,9 @@
             this.credom();
             this.datas = [];
             this.progress_num = 0;
-            this.currentsize = 0;
-            this.reStatus = true;
-            this.shardTime = 0;
+            this.current_size = 0;
+            this.result_status = true;
+            this.shard_time = 0;
             this.file = file;
             this.size = file.size;
             this.filename = file.name;
@@ -351,28 +362,28 @@
             if (this.type) {
                 let uptype = this.type.split(",");
                 if (uptype.indexOf(this.suffix) == -1) {
-                    this.error(this.errormsg['1001']);
+                    this.error(this.error_msg['1001']);
                     return;
                 }
             }
-            if (this.minsize) {
-                let limitNum = this.limitFileSize(this.minsize + 'MB');
+            if (this.min_size) {
+                let limitNum = this.limit_file_size(this.min_size + 'MB');
 				console.log(limitNum);
                 if (file.size < limitNum) {
-                    this.error(this.errormsg['1002']);
+                    this.error(this.error_msg['1002']);
                     return;
                 }
             }
-            if (this.maxsize) {
-                let limitNum = this.limitFileSize(this.maxsize + 'MB');
+            if (this.max_size) {
+                let limitNum = this.limit_file_size(this.max_size + 'MB');
                 if (file.size > limitNum) {
-                    this.error(this.errormsg['1003']);
+                    this.error(this.error_msg['1003']);
                     return;
                 }
             }
             let i = 0,
                 blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
-                chunkSize = (+this.shardsize) * 1024 * 1024,
+                chunkSize = (+this.shard_size) * 1024 * 1024,
                 chunks = Math.ceil(file.size / chunkSize),
                 currentChunk = 0,
                 md5id = 0,
@@ -391,26 +402,25 @@
                     that.k = 0;
                     that.shardIndex = 1;
                     that.cachepertime = 0;
-                    that.startUpload();
+                    that.start_upload();
 
                 }
             };
             let frOnerror = function () {};
             fileReader.onload = frOnload;
             fileReader.onerror = frOnerror;
-
             function loadNext() {
                 let start = currentChunk * chunkSize,
                     end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize,
                     filedata = file.slice(start, end);
-                that.postData(i, start, end);
+                that.post_data(i, start, end);
                 fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
                 i++;
             };
             loadNext();
         };
         // 开始上传
-        this.startUpload = function () {
+        this.start_upload = function () {
             that.upcheck(that.md5str); // 检查上传
             if (that.alreadyExists == false) {
                 return;
@@ -421,8 +431,7 @@
         };
         this.exetnd(config);
     };
-    exports.fcup = fcup;
-})(this);
+});
 // spark-md5文件 用于计算文件md5值
 (function (factory) {
     if (typeof exports === "object") {

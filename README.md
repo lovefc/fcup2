@@ -10,7 +10,7 @@ Gitee：https://gitee.com/lovefc/fcup2
 
 Github：https://github.com/lovefc/fcup2
 
-NODE完整案例: https://gitee.com/lovefc/webpack
+NODE打包使用案例: https://gitee.com/lovefc/webpack
 
 ![](/show.png)
 
@@ -24,29 +24,29 @@ NODE完整案例: https://gitee.com/lovefc/webpack
 ### 使用方法
 
 ```javascript
-   // 上传案例
+   // 上传案例2
    let up = new fcup({
 
       id: "upid", // 绑定id
 
       url: "server/php_db/upload.php", // url地址
 	  
-	  checkurl: "server/php_db/check.php", // 检查上传url地址
+	  check_url: "server/php_db/check.php", // 检查上传url地址
 
       type: "jpg,png,jpeg,gif", // 限制上传类型，为空不限制
 
-      shardsize: "0.005", // 每次分片大小，单位为M，默认1M
+      shard_size: "0.005", // 每次分片大小，单位为M，默认1M
 
-      minsize: '', // 最小文件上传M数，单位为M，默认为无
+      min_size: '', // 最小文件上传M数，单位为M，默认为无
 
-      maxsize: "2", // 上传文件最大M数，单位为M，默认200M
+      max_size: "2", // 上传文件最大M数，单位为M，默认200M
       
 	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头,默认为null, 请注意指定header头时将不能进行跨域操作
 	  
 	  // apped_data: {}, //每次上传的附加数据
 	  
       // 定义错误信息
-      errormsg: {
+      error_msg: {
          1000: "未找到上传id",
          1001: "类型不允许上传",
          1002: "上传文件过小",
@@ -62,17 +62,17 @@ NODE完整案例: https://gitee.com/lovefc/webpack
       // 初始化事件                
       start: () => {
          console.log('上传已准备就绪');
-         Progress(0);
+         Progress2(0);
       },
 
       // 等待上传事件，可以用来loading
-      beforeSend: () => {
+      before_send: () => {
          console.log('等待请求中');
       },
 
       // 上传进度事件
       progress: (num, other) => {
-         Progress(num);
+         Progress2(num);
          console.log(num);
          console.log('上传进度' + num);
          console.log("上传类型" + other.type);
@@ -83,7 +83,7 @@ NODE完整案例: https://gitee.com/lovefc/webpack
       },
 	  
       // 检查地址回调,用于判断文件是否存在,类型,当前上传的片数等操作
-      checksuccess: (res) => {
+      check_success: (res) => {
 	  
          let data = res ? eval('(' + res + ')') : '';
 		 
@@ -101,10 +101,7 @@ NODE完整案例: https://gitee.com/lovefc/webpack
 		 
 		 // 已经上传
          if (status == 2) {
-            Progress(100);
-            $('#pic').attr("src", url);
-            $('#pic').show();
-			alert('图片已存在');
+			alert('文件已存在');
             return false;
          }
          
@@ -113,7 +110,7 @@ NODE完整案例: https://gitee.com/lovefc/webpack
            // 起始上传的切片要从1开始
 		   let file_index = data.file_index ? parseInt(data.file_index) : 1;
            // 设置上传切片的起始位置		   
-		   up.setshard(file_index);
+		   up.set_shard(file_index);
 		}
 		 
         // 如果接口没有错误，必须要返回true，才不会终止上传
@@ -130,15 +127,13 @@ NODE完整案例: https://gitee.com/lovefc/webpack
 		 let file_index = data.file_index ? parseInt(data.file_index) : 1;
 
          if (data.status == 2) {
-            $('#pic').attr("src", url);
-            $('#pic').show();
             alert('上传完成');
          }
 
          // 如果接口没有错误，必须要返回true，才不会终止上传循环
          return true;
       }
-   });	
+   });		
 ```
 
 ### 前端参数详细
@@ -147,28 +142,28 @@ NODE完整案例: https://gitee.com/lovefc/webpack
 |----    |-------    |--- |---|------      | 
 |id | string | 否 | 无 |     dom的id        | 
 |url |string | 否 | 无  |   上传到服务器的url  |
-|checkurl |string | 否 | 无  |   检查上传url地址  |
+|check_url |string | 否 | 无  |   检查上传url地址  |
 |type |string | 是  |  空 |  限制上传类型，多个用,号分割(不区分大小写),为空不限制  |
-|shardsize    | int,float | 否   | 2   |     每次分片的大小,单位为M,因为要计算md5,所以如果条件允许,不要设定的太小     |
-|minsize    | int,float | 是   | 空   |  上传文件的最小M数   |
-|maxsize    | int,float | 是   | 空   |  上传文件的最大M数   |
+|shard_size    | int,float | 否   | 2   |     每次分片的大小,单位为M,因为要计算md5,所以如果条件允许,不要设定的太小     |
+|min_size    | int,float | 是   | 空   |  上传文件的最小M数   |
+|max_size    | int,float | 是   | 空   |  上传文件的最大M数   |
 |headers |object   |是   | 空  |  每次上传附带的文件头,请注意指定header头时将不能进行跨域操作 |
 |apped_data |object   |是   | 空  |  每次上传附带的其它参数,传递到后台  |
 |timeout |int   |否   | 3000 |  ajax超时时间  |
-|errormsg |object   |否   | object |  错误提示 | 
+|error_msg |object   |否   | object |  错误提示 | 
 |start |function   |是   | fucntion |  实例化类后的开始事件  |
-|beforeSend |function   |是   | fucntion |  等待上传事件  |
+|before_send |function   |是   | fucntion |  等待上传事件  |
 |progress |function   |是   | fucntion |  上传进度事件  |
 |error |function   |是   | fucntion |  内部的错误提示函数  |
-|checksuccess |function   |是   | fucntion |  检查地址回调,用于判断文件是否存在,类型,改变当前上传的片数等操作 |
+|check_success |function   |是   | fucntion |  检查地址回调,用于判断文件是否存在,类型,改变当前上传的片数等操作 |
 |success |function   |是   | fucntion |  数据成功传递到后端的事件,这是一个循环事件 |
 
 ### 常用函数
 | 函数名 | 说明 |
 |----    |------      | 
-|fcup.setshard(file_index)|    设置当前的分片数起始数,用于断点上传时改变       | 
+|fcup.set_shard(file_index)|    设置当前的分片数起始数,用于断点上传时改变       | 
 |fcup.cancel()|取消上传事件  |
-|fcup.startUpload()|开始上传事件  |
+|fcup.start_upload()|开始上传事件  |
 
 ### 后端参数详情
 
@@ -213,3 +208,5 @@ NODE完整案例: https://gitee.com/lovefc/webpack
 2021/03/18: 添加了node上传案例,后端使用了fc-body插件来进行上传
 
 2021/08/20: 修改上传大小值限定精度问题
+
+2021/12/20: 规范了参数命名问题

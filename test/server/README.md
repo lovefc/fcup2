@@ -1,3 +1,12 @@
+### demo使用
+
+请使用nginx或者apache把git下来的项目设成主目录
+
+php访问:xxxx/test/index.html
+
+node访问:xxxx/test/node.html (node需要去server/node/目录,运行api.js)
+
+
 ### 后端参数详情
 
 |参数名|注释|

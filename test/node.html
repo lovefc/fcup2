@@ -59,7 +59,7 @@
    <!--  jquery  -->
    <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
    <!--  fcup.js  -->
-   <script src="../src/fcup.min.js?v=2.2"></script>
+   <script src="../src/fcup.min.js?v=2.3"></script>
 
    <script>
    // 上传案例
@@ -71,18 +71,18 @@
 
       type: "gif,jpg,jpeg,png", // 限制上传类型，为空不限制
 
-      shardsize: "0.01", // 每次分片大小，单位为M，默认1M
+      shard_size: "1", // 每次分片大小，单位为M，默认1M
 
-      minsize: '', // 最小文件上传M数，单位为M，默认为无
+      min_size: '', // 最小文件上传M数，单位为M，默认为无
 
-      maxsize: "2000", // 上传文件最大M数，单位为M，默认200M
+      max_size: "10", // 上传文件最大M数，单位为M，默认200M
       
-	  // headers: {"version": "fcup-v2.0"}, // 附加的文件头,默认为null, 请注意指定header头时将不能进行跨域操作
+	  //headers: {"version": "fcup-v2.0"}, // 附加的文件头,默认为null, 请注意指定header头时将不能进行跨域操作
 	  
-	  // apped_data: {}, //每次上传的附加数据
+	  //apped_data: {}, //每次上传的附加数据
 	  
       // 定义错误信息
-      errormsg: {
+      error_msg: {
          1000: "未找到上传id",
          1001: "类型不允许上传",
          1002: "上传文件过小",
@@ -102,7 +102,7 @@
       },
 
       // 等待上传事件，可以用来loading
-      beforeSend: () => {
+      before_send: () => {
          console.log('等待请求中');
       },
 

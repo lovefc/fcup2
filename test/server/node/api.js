@@ -13,6 +13,23 @@ const fc_body = require('fc-body');
 const fs = require("fs");
 const path = require("path");
 
+let mkdir = function(folderpath) {
+    try {
+        const pathArr = folderpath.split('/');
+        let _path = '';
+        for (let i = 0; i < pathArr.length; i++) {
+            if (pathArr[i]) {
+                _path += `${pathArr[i]}/`;
+                console.log(_path);
+                console.log(fs.existsSync(_path));
+                if (!fs.existsSync(_path)) {
+                    fs.mkdirSync(_path);
+                }
+            }
+        }
+    } catch (e) { }
+}
+
 const server = http.createServer(async (req, res) => {
 
   //设置允许跨域的域名，*代表允许任意域名跨域
@@ -48,7 +65,8 @@ const server = http.createServer(async (req, res) => {
     let dir = path.resolve(__dirname, '..'); // 获取上级目录
     let name = post['file_name'] ? post['file_name'] : ''; // 文件名称
     let file_index = post['file_index'] ? post['file_index'] : 0; // 当前片数 
-    let file_total = post['file_total'] ? post['file_total'] : 0; // 总片数 	
+    let file_total = post['file_total'] ? post['file_total'] : 0; // 总片数
+    let file_md5 = post['file_md5'] ? post['file_md5'] : 0; // 文件md5  	
     let data = null;
     // 检查有没有数据
     if ("file_data" in post) {
@@ -58,15 +76,18 @@ const server = http.createServer(async (req, res) => {
       res.end('{"status":0,"message":"没有数据"}');
       return;
     }
-    let file_dir = dir + "/upload/" + name;
+    let file_dir = dir + "/upload/"
+	
+	mkdir(file_dir);
+
+    let file_dir_name = file_dir + name;
 
     // 异步追加,你也可以用同步来写
-    fs.appendFile(file_dir, data, (error) => {
-      if (error) return console.log("追加文件失败" + error.message);
-      console.log("追加成功");
+    fs.appendFile(file_dir_name, data, (error) => {
+       if (error) return console.log("追加文件失败" + error.message);
     });
 
-    let url = './server/upload/'.name;
+    let url = './server/upload/'+name;
     // 片数相等,就返回成功
     if (file_index === file_total) {
       res.end('{"status":2,"message":"上传完成","url":"' + url + '","file_index":"' + file_index + '"}');
@@ -77,6 +98,7 @@ const server = http.createServer(async (req, res) => {
   }
 })
 
-server.listen(3001, () => {
+
+server.listen(3001, '0.0.0.0',() => {
   console.log('Server listening on http://localhost:3001/ ...');
 });
