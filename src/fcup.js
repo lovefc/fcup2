@@ -4,7 +4,7 @@
  * blog：https://lovefc.cn
  * github: https://github.com/lovefc/fcup2
  * gitee: https://gitee.com/lovefc/fcup2
- * uptime: 2021/12/20 10:40 优化参数命名
+ * uptime: 2021/12/21 10:02 优化参数命名
  */
 ;(function (factory) {
     if (typeof exports === "object") {
@@ -130,10 +130,10 @@
             that.cancelStatus = 1;
         };
         // 配置参数
-        this.exetnd = function (jb) {
-            if (Object.prototype.toString.call(jb) === '[object Object]') {
-                for (let i in jb) {
-                    that[i] = jb[i];
+        this.extend = function (config) {
+            if (Object.prototype.toString.call(config) === '[object Object]') {
+                for (let i in config) {
+                    that[i] = config[i];
                 };
                 this.init();
             }
@@ -429,7 +429,7 @@
                 that.post(that.md5str);
             }
         };
-        this.exetnd(config);
+        this.extend(config);
     };
 });
 // spark-md5文件 用于计算文件md5值
