@@ -21,7 +21,7 @@
         glob.fcup = factory();
     }
 })(function () {
-	'use strice';
+    'use strice';
     return function (config) {
         let that = this;
         if (!new.target) {
@@ -156,7 +156,7 @@
             };
             let evt = document.createEvent("HTMLEvents");
             evt.initEvent("change", false, false);
-            this.filedom.dispatchEvent(evt);
+            that.start();
         };
         // 注销
         this.destroy = function () {
@@ -172,8 +172,8 @@
         };
         // 触发事件
         this.onevent = function () {
-            that.start();
             let files = that.filedom.files[0];
+            that.before_send(files);
             that.upload(files);
         };
         // 上传处理
@@ -368,7 +368,6 @@
             }
             if (this.min_size) {
                 let limitNum = this.limit_file_size(this.min_size + 'MB');
-				console.log(limitNum);
                 if (file.size < limitNum) {
                     this.error(this.error_msg['1002']);
                     return;
