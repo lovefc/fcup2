@@ -4,7 +4,7 @@
  * blog：https://lovefc.cn
  * github: https://github.com/lovefc/fcup2
  * gitee: https://gitee.com/lovefc/fcup2
- * uptime: 2021/12/21 10:02 优化参数命名
+ * uptime: 2022/06/05 10:16 修复等待事件
  */
 ;(function (factory) {
     if (typeof exports === "object") {
@@ -54,8 +54,10 @@
             1004: "请求超时"
         };
         this.start = function () {};
+		// 默认等待事件
+		this.before_send = function () {};
         this.error = function (err) {
-            alert(err)
+            alert(err);
         };
         this.success = function (res) {
             return true;
